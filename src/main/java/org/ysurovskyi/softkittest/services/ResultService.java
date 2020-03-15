@@ -25,10 +25,10 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ResultService {
     public static final PageRequest TOP5_PAGE_REQUEST = PageRequest.of(0, 5, Sort.by(Sort.Order.asc("latestPrice").nullsLast(), Sort.Order.asc("companyName")));
-    public static final String TOP_5_QUERY = "select symbol, abs(diff) as diff\n" +
+    public static final String TOP_5_QUERY = "select symbol, abs(diff)*100-100 as diff\n" +
             "from (select *,\n" +
             "             row_number() over (partition by symbol order by latest_update desc)                        as r,\n" +
-            "             LAG(latest_price, 1) over (partition by symbol order by latest_update desc) - latest_price as diff\n" +
+            "             case latest_price when 0 then null else LAG(latest_price, 1) over (partition by symbol order by latest_update desc) / latest_price end as diff\n" +
             "      from company_aud) as t\n" +
             "where r < 3 and diff is not null\n" +
             "order by diff desc limit 5";
